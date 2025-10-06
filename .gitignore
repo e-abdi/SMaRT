@@ -1,0 +1,15 @@
+# Zephyr / CMake
+build/
+build-*/
+**/build/
+twister-out/
+CMakeUserPresets.json
+compile_commands.json
+
+# Editors
+.vscode/
+.idea/
+
+# Python / West caches
+.venv/
+__pycache__/
