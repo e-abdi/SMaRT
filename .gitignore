@@ -13,3 +13,12 @@ compile_commands.json
 # Python / West caches
 .venv/
 __pycache__/
+
+# KiCad
+*.bak
+*.kicad_pcb-bak
+*.sch-bak
+*.tmp
+*.swp
+_autosave-*
+fp-info-cache
