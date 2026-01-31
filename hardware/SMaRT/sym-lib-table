@@ -6,4 +6,6 @@
   (lib (name "2025-09-12_14-18-33")(type "KiCad")(uri "${KIPRJMOD}/symbols/2025-09-12_14-18-33.kicad_sym")(options "")(descr ""))
   (lib (name "Qwiic")(type "KiCad")(uri "${KIPRJMOD}/symbols/Qwiic.kicad_sym")(options "")(descr ""))
   (lib (name "OpenLog")(type "KiCad")(uri "${KIPRJMOD}/symbols/OpenLog.kicad_sym")(options "")(descr ""))
+  (lib (name "CPC1601MTR")(type "KiCad")(uri "${KIPRJMOD}/symbols/CPC1601MTR.kicad_sym")(options "")(descr ""))
+  (lib (name "SSR")(type "KiCad")(uri "${KIPRJMOD}/symbols/SSR.kicad_sym")(options "")(descr ""))
 )

@@ -6,4 +6,6 @@
   (lib (name "MPT1584")(type "KiCad")(uri "${KIPRJMOD}/MPT1584.pretty")(options "")(descr ""))
   (lib (name "Qwiic")(type "KiCad")(uri "${KIPRJMOD}/footprints/Qwiic.pretty")(options "")(descr ""))
   (lib (name "OpenLog")(type "KiCad")(uri "${KIPRJMOD}/footprints/OpenLog.pretty")(options "")(descr ""))
+  (lib (name "JUMPER-")(type "KiCad")(uri "/home/ehsan/Downloads/JUMPER-.pretty")(options "")(descr ""))
+  (lib (name "MPT1684")(type "KiCad")(uri "${KIPRJMOD}/footprints/MPT1584.pretty/MPT1684.pretty")(options "")(descr ""))
 )
