@@ -63,7 +63,7 @@
 				)
 			)
 			(pin input line
-				(at -5.08 1.27 180)
+				(at -7.62 1.27 0)
 				(length 2.54)
 				(name "IN+"
 					(effects
@@ -81,7 +81,7 @@
 				)
 			)
 			(pin input line
-				(at -5.08 -1.27 180)
+				(at -7.62 -1.27 0)
 				(length 2.54)
 				(name "IN-"
 					(effects
@@ -99,7 +99,7 @@
 				)
 			)
 			(pin input line
-				(at 5.08 1.27 0)
+				(at 7.62 1.27 180)
 				(length 2.54)
 				(name "OUT+"
 					(effects
@@ -117,7 +117,7 @@
 				)
 			)
 			(pin input line
-				(at 5.08 -1.27 0)
+				(at 7.62 -1.27 180)
 				(length 2.54)
 				(name "OUT-"
 					(effects

@@ -8,4 +8,5 @@
   (lib (name "OpenLog")(type "KiCad")(uri "${KIPRJMOD}/footprints/OpenLog.pretty")(options "")(descr ""))
   (lib (name "JUMPER-")(type "KiCad")(uri "/home/ehsan/Downloads/JUMPER-.pretty")(options "")(descr ""))
   (lib (name "MPT1684")(type "KiCad")(uri "${KIPRJMOD}/footprints/MPT1584.pretty/MPT1684.pretty")(options "")(descr ""))
+  (lib (name "G3VM-41AY1")(type "KiCad")(uri "${KIPRJMOD}/footprints/G3VM-41AY1.pretty")(options "")(descr ""))
 )
