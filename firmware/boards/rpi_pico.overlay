@@ -33,14 +33,16 @@
 
 &uart0 {
     status = "okay";
-    current-speed = <115200>;
+    /* Glider and Sensor baud: 38400 */
+    current-speed = <38400>;
     pinctrl-0 = <&uart0_default>;
     pinctrl-names = "default";
 };
 
 &uart1 {
     status = "okay";
-    current-speed = <115200>;
+    /* Glider and Sensor baud: 38400 */
+    current-speed = <38400>;
     pinctrl-0 = <&uart1_default>;
     pinctrl-names = "default";
 };
