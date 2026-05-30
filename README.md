@@ -2,7 +2,7 @@
 **Sensor Management and Relay Tool**
 
 This tool is designed to facilitate easier sensor integration on gliders.
-The idea is to have a mainboard that hosts popular, easy-to-source modules in order to create a man-in-the-middle board for custom sensor integration or for fully using the capabilities of the Slocum BackSeatDriver without needing power-hungry boards such as the Raspberry Pi or other single-board computers.
+The idea is to have a mainboard that hosts popular, easy-to-source modules in order to create a man-in-the-middle board for custom sensor integration on Seaglider or to fully use the capabilities of the Slocum BackSeatDriver without the need for power-hungry boards such as the Raspberry Pi or other single-board computers.
 
 **Hardware**
 
@@ -23,4 +23,5 @@ The form factor is also just small enough to fit inside a [1000 m rated 2" x 150
 
 **Firmware**
 
+The firmware is based on Zephyr, a modern open-source real-time operating system hosted by the Linux Foundation and originally initiated by Intel. It follows industry best practices for safety, security, and modularity, and benefits from a broad, vendor-neutral ecosystem. Unlike many traditional RTOS solutions that are tightly coupled to a single vendor, Zephyr is highly portable and hardware-agnostic, making it well suited for flexible and scalable embedded system design.
 The current firmware is a work-in-progress for UVP6 integration on Slocum only. The plan is to make the firmware more generic and applicable to both Seaglider and Slocum.
