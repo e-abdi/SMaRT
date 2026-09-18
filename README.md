@@ -1,7 +1,7 @@
 # SMaRT
 **Sensor Management and Relay Tool**
 
-This tool is designed to facilitate easier sensor integration on gliders.
+This tool is designed to facilitate easier sensor integration on gliders, and it replaces [this board](https://github.com/e-abdi/Smart-Cable).
 The idea is to have a mainboard that hosts popular, easy-to-source modules in order to create a man-in-the-middle board for custom sensor integration on Seaglider or to fully use the capabilities of the Slocum BackSeatDriver without the need for power-hungry boards such as the Raspberry Pi or other single-board computers.
 
 **Hardware**
