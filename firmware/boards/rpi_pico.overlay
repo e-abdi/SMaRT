@@ -1,49 +1,57 @@
+/*
+ * SMaRT board (hardware/SMaRT) on a Raspberry Pi Pico.
+ *
+ *   GP0/GP1  UART0  glider, through MAX3232 U2, connector J5
+ *   GP4/GP5  UART1  sensor (MAX3232 U4, J13) or OpenLog, selected by JP2/JP3
+ *   GP16            sensor power relay U3 (sensor return via JP1 A-C)
+ *   GP2/GP3  I2C1   Qwiic J2/J3
+ */
 #include <dt-bindings/pinctrl/rpi-pico-rp2040-pinctrl.h>
 
 / {
-    chosen {
-        zephyr,console = &uart0;
-        zephyr,shell-uart = &uart0;
-    };
+	chosen {
+		smart,glider-uart = &uart0;
+		smart,sensor-uart = &uart1;
+	};
+
+	zephyr,user {
+		sensor-power-gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &pinctrl {
-    /* Configuration for uart0 "default" state */
-    uart0_default: uart0_default {
-        group1 {
-            pinmux = <UART0_TX_P0>;
-        };
-        group2 {
-            pinmux = <UART0_RX_P1>;
-            input-enable;
-        };
-    };
+	uart0_default: uart0_default {
+		group1 {
+			pinmux = <UART0_TX_P0>;
+		};
+		group2 {
+			pinmux = <UART0_RX_P1>;
+			input-enable;
+		};
+	};
 
-    /* Configuration for uart1 "default" state */
-    uart1_default: uart1_default {
-        group1 {
-            pinmux = <UART1_TX_P4>;
-        };
-        group2 {
-            pinmux = <UART1_RX_P5>;
-            input-enable;
-        };
-    };
+	uart1_default: uart1_default {
+		group1 {
+			pinmux = <UART1_TX_P4>;
+		};
+		group2 {
+			pinmux = <UART1_RX_P5>;
+			input-enable;
+		};
+	};
 };
 
+/* Baud rates are applied at runtime from the profile */
 &uart0 {
-    status = "okay";
-    /* Glider and Sensor baud: 38400 */
-    current-speed = <38400>;
-    pinctrl-0 = <&uart0_default>;
-    pinctrl-names = "default";
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart0_default>;
+	pinctrl-names = "default";
 };
 
 &uart1 {
-    status = "okay";
-    /* Glider and Sensor baud: 38400 */
-    current-speed = <38400>;
-    pinctrl-0 = <&uart1_default>;
-    pinctrl-names = "default";
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart1_default>;
+	pinctrl-names = "default";
 };
-

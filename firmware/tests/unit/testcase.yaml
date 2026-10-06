@@ -1,0 +1,10 @@
+common:
+  platform_allow:
+    - native_sim/native/64
+  integration_platforms:
+    - native_sim/native/64
+tests:
+  smart.unit.uvp6_slocum:
+    extra_args: SMART_PROFILE=uvp6_slocum
+  smart.unit.uvp6_seaglider:
+    extra_args: SMART_PROFILE=uvp6_seaglider

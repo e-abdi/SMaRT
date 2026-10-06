@@ -1,252 +1,199 @@
-# Documentation Index
+# SMaRT firmware
 
-This folder contains comprehensive documentation for the multi-sensor integration firmware.
+Zephyr firmware for the SMaRT board (RP2040 / Raspberry Pi Pico). It sits between a glider and a
+sensor, and decides when the sensor runs. It works with both glider types:
 
-## Quick Start
+| Glider | Glider-side interface | What the board does |
+|---|---|---|
+| Slocum G3 | Backseat Driver, `extctl` proglet | Reads `$SD` (time, depth, depth state), decides itself when to start and stop the sensor, reports back with `$SW` |
+| Seaglider | `logdev` logger device (`.cnf` file) | Acts as a logger device: follows logdev `START`/`STOP`, keeps processed data, hands it over on download |
 
-**New to this project?** Start here:
-1. Read `QUICK_REFERENCE.md` for a 2-minute overview
-2. Review `CHANGES_SUMMARY.md` for what was modified
-3. Check `STATUS_BYTE_ENCODING.md` if working with powerup phase
+Each integration (a glider type plus a sensor) is a **profile**: one folder under `profiles/` holding
+the board settings (`smart.conf`) next to the glider-side file (`extctl.ini` or `.cnf`). Most sensors
+need no code at all, only a profile.
 
-## Documentation Files
-
-### `CHANGES_SUMMARY.md`
-**Purpose:** High-level overview of all code changes  
-**Content:**
-- List of modified files (glider.h, sensor.h, main.c)
-- Description of each change and rationale
-- New features implemented
-- Testing strategy
-- Build instructions
-- Known limitations
-- Future enhancement ideas
-
-**Best for:** Understanding what was changed and why
-
----
-
-### `QUICK_REFERENCE.md`
-**Purpose:** Quick lookup guide for common operations  
-**Content:**
-- State machine transitions diagram
-- Command reference table (glider ↔ sensor)
-- Key messages and meanings
-- Response messages sent to glider
-- Mode change behavior walkthrough
-- Status byte quick reference
-- RTT debug output locations
-- Testing checklist
-
-**Best for:** Quick lookups during development/testing
-
----
-
-### `STATUS_BYTE_ENCODING.md`
-**Purpose:** Detailed documentation of powerup status byte  
-**Content:**
-- Bit-level encoding explanation
-- Status byte value table (0-3)
-- Example scenarios for each value
-- Calculation algorithm
-- XOR checksum details
-- Timeline diagram
-
-**Best for:** Understanding powerup phase and status reporting
-
----
-
-### `PROTOCOL_REFERENCE.md`
-**Purpose:** Complete message format and protocol specification  
-**Content:**
-- System architecture overview
-- Detailed powerup phase flow (timeline and behavior)
-- IDLE state behavior and transitions
-- DIVE state behavior and transitions
-- Mode change handling details
-- All message formats (inbound/outbound)
-- Time conversion examples
-- Passthrough mode documentation
-- RTT debug output examples
-- Error handling table
-- Performance characteristics
-- Complete state diagram
-
-**Best for:** Understanding the complete system behavior
-
----
-
-### `IMPLEMENTATION_NOTES.md`
-**Purpose:** Technical implementation details  
-**Content:**
-- State machine expansion summary
-- Sensor control command details
-- Mode change handling explanation
-- SD field index changes
-- HW_CONF detection mechanism
-- Comprehensive debug output locations
-- Time formatting algorithm
-- File change summary for each source file
-
-**Best for:** Understanding implementation details and code structure
-
----
-
-## Feature Breakdown
-
-### Powerup Phase (2 seconds)
-- **Files:** POWERUP phase enum, on_u0_powerup(), on_u1_powerup()
-- **Docs:** STATUS_BYTE_ENCODING.md, PROTOCOL_REFERENCE.md
-- **Status:** Monitors for HI/SD/HW_CONF, sends status byte
-
-### Sensor Start Command
-- **Files:** sensor_send_start_with_time(), sensor_send_start_no_time()
-- **Docs:** PROTOCOL_REFERENCE.md section "Message Formats"
-- **Status:** Formats epoch as YYYYMMDD,HHMMSS, sends SW,1
-
-### Sensor Stop Command
-- **Files:** sensor_send_stop() (called twice with 200ms delay)
-- **Docs:** QUICK_REFERENCE.md, PROTOCOL_REFERENCE.md
-- **Status:** Triggered by BY or mode change
-
-### Mode Change Handling
-- **Files:** on_u0_run() mode detection, sensor restart logic
-- **Docs:** QUICK_REFERENCE.md, PROTOCOL_REFERENCE.md
-- **Status:** Automatic stop/wait/restart with 2-second delay
-
-### Time Conversion
-- **Files:** sensor_send_start_with_time() using gmtime()
-- **Docs:** PROTOCOL_REFERENCE.md, IMPLEMENTATION_NOTES.md
-- **Status:** Unix epoch → YYYYMMDD,HHMMSS (UTC)
-
-### Debug Output
-- **Files:** #if DEBUG_RTT throughout main.c
-- **Docs:** All docs reference RTT output examples
-- **Status:** Comprehensive logging to RTT console
-
----
-
-## Key Diagrams
-
-### State Machine
-See: `QUICK_REFERENCE.md` (ASCII diagram)  
-See: `PROTOCOL_REFERENCE.md` (complete diagram with details)
-
-### Powerup Timeline
-See: `PROTOCOL_REFERENCE.md` section "Powerup Phase (0-2 seconds)"
-
-### Mode Change Sequence
-See: `PROTOCOL_REFERENCE.md` section "Mode Change Handling"
-
----
-
-## Message Reference Quick Lookup
-
-### From Glider (UART0)
-| Message | Reference |
-|---------|-----------|
-| `$HI` | QUICK_REFERENCE.md, PROTOCOL_REFERENCE.md |
-| `$SD,` | QUICK_REFERENCE.md, PROTOCOL_REFERENCE.md |
-| `$BY` | QUICK_REFERENCE.md, PROTOCOL_REFERENCE.md |
-| `$MIRROR` | QUICK_REFERENCE.md, PROTOCOL_REFERENCE.md |
-
-### To Glider (UART0)
-| Message | Reference |
-|---------|-----------|
-| `$SW,0:<status>` | STATUS_BYTE_ENCODING.md, PROTOCOL_REFERENCE.md |
-| `$SW,1:1` | QUICK_REFERENCE.md, PROTOCOL_REFERENCE.md |
-| `$SW,1:-1` | QUICK_REFERENCE.md, PROTOCOL_REFERENCE.md |
-
-### To Sensor (UART1)
-| Message | Reference |
-|---------|-----------|
-| `$start:...` | PROTOCOL_REFERENCE.md |
-| `$stop;` | QUICK_REFERENCE.md, PROTOCOL_REFERENCE.md |
-
----
-
-## Testing Checklist
-
-See: `QUICK_REFERENCE.md` section "Testing Checklist"
-
-For detailed testing strategy, see: `CHANGES_SUMMARY.md` section "Testing Strategy"
-
----
-
-## For Code Review
-
-1. Start with: `CHANGES_SUMMARY.md`
-2. Review changes in order:
-   - glider.h (constants)
-   - sensor.h (constants)
-   - main.c (functions, then main loop)
-3. Check implementation against: `PROTOCOL_REFERENCE.md`
-4. Verify RTT output matches: `QUICK_REFERENCE.md`
-
----
-
-## For Integration Testing
-
-1. Review: `PROTOCOL_REFERENCE.md` (complete message flows)
-2. Monitor: RTT output (examples in all docs)
-3. Verify: `QUICK_REFERENCE.md` checklist items
-4. Cross-check: Message formats in `PROTOCOL_REFERENCE.md`
-
----
-
-## Build & Flash
+## Build, flash, test
 
 ```bash
-cd /home/glider/zephyrproject/SMaRT_UVP6_v1
-west build
-west flash  # If connected to RPi Pico
+source ~/zephyrproject/.venv/bin/activate
+cd SMaRT
+
+# Board image for a profile
+west build -p -b rpi_pico firmware -- -DSMART_PROFILE=uvp6_slocum
+# flash build/zephyr/zephyr.uf2 (BOOTSEL drag-and-drop) or: west flash
+
+# Host tests, run against the real profile
+west build -p -b native_sim/native/64 firmware/tests/unit -d build-test -- -DSMART_PROFILE=uvp6_slocum
+build-test/zephyr/zephyr.exe
 ```
 
-Then monitor RTT console for debug output.
+Debug output goes to SEGGER RTT through the SWD header (J8). It never touches the glider or sensor
+UART. The board logs every state change, every command sent, and a status line once a minute.
 
----
+### Bench test without a glider
 
-## File Locations
+`tools/glider_sim.py` plays a dive over a USB-serial adapter wired to the glider connector:
 
-```
-SMaRT_UVP6_v1/
-├── CMakeLists.txt
-├── prj.conf
-├── boards/
-│   └── rpi_pico.overlay
-├── src/
-│   ├── main.c                      (MODIFIED)
-│   ├── glider.h                    (MODIFIED)
-│   └── sensor.h                    (MODIFIED)
-└── Documentation (NEW):
-    ├── CHANGES_SUMMARY.md          (This folder)
-    ├── QUICK_REFERENCE.md
-    ├── STATUS_BYTE_ENCODING.md
-    ├── PROTOCOL_REFERENCE.md
-    ├── IMPLEMENTATION_NOTES.md
-    └── README.md                   (This file)
+```bash
+python3 firmware/tools/glider_sim.py slocum /dev/ttyUSB0 --baud 38400 --depth 30
+python3 firmware/tools/glider_sim.py seaglider /dev/ttyUSB0 --baud 115200 --depth 30
 ```
 
----
+## Profiles shipped
 
-## Questions?
+| Profile | Glider | Sensor | Behaviour |
+|---|---|---|---|
+| `uvp6_slocum` | Slocum | UVP6 | Port of `legacy/uvp6_slocum_v1`: one UVP6 acquisition per dive/climb/hover leg, LPM count and max depth reported per leg |
+| `uvp6_seaglider` | Seaglider | UVP6 | Port of the Smart-Cable sg644 integration: logdev START/STOP, LPM records reduced to 5 size classes (1 in 10) and downloaded after the dive |
 
-Refer to the appropriate documentation file based on your question type:
+## How it works
 
-- **"What changed?"** → CHANGES_SUMMARY.md
-- **"How do I...?"** → QUICK_REFERENCE.md
-- **"What does this status byte mean?"** → STATUS_BYTE_ENCODING.md
-- **"Show me message format XYZ"** → PROTOCOL_REFERENCE.md
-- **"How does feature ABC work?"** → IMPLEMENTATION_NOTES.md
+```
+ glider UART ──► line framer ──► glider adapter ──┐                ┌──► sensor commands
+                                (slocum_bsd.c or  │   events       │    (templates)
+                                 seaglider_logdev)├──► controller ─┤
+ sensor UART ──► line framer ──► sensor.c ────────┘   (state       └──► glider reports
+                                   │                   machine)
+                                   └──► processing (stats, plug-ins) ──► store ──► download
+```
 
----
+* **Single event loop, no shared-state races.** UART interrupts only copy bytes into ring buffers.
+  Everything else runs in the main loop, which sleeps until data arrives or a deadline expires. The
+  legacy firmware polled the 32-byte UART FIFO and blocked for up to 200 ms during stop sequences,
+  which could drop glider messages. Byte loss is now counted and reported (health bit 128).
+* **One state machine** (Zephyr SMF, `src/core/controller.c`):
 
-## Version Information
+  ```
+  BOOT ──► IDLE ◄──► PASSTHROUGH
+            │ ▲
+            ▼ │ glider session ends
+          ACTIVE: ARMED ──► STARTING ──► SAMPLING ──► STOPPING ──► HOLDOFF ──► ARMED
+  ```
 
-- **Firmware Version:** Multi-Sensor Integration v1.0
-- **Last Updated:** November 28, 2025
-- **Compatible Hardware:** RPi Pico with dual UART support
-- **Zephyr Kernel:** See prj.conf for version
-- **Languages:** C99 (Zephyr compatible)
+  Every waiting state has a deadline. Acks are retried a bounded number of times. A failed start
+  backs off and tries again later. The machine never waits forever.
+* **Sampling policy.** The sensor should run while all of these hold: the glider session is open,
+  the glider has commanded a start (Seaglider only), the flight phase is enabled, the depth is inside
+  the window (with hysteresis), and the time is known or the time wait has expired. On Slocum, pilots
+  can override the phase mode and depth window from shore through `sci_generic` inputs
+  (`SMART_SLOCUM_IDX_IN_*`).
+* **Recovery paths:**
+  * a `$SD` after a board reset reopens the session;
+  * a sensor that reboots mid-acquisition is restarted;
+  * sensor data arriving while the board believes the sensor is idle triggers a stop;
+  * data arriving before the start ack counts as the ack;
+  * passthrough times out;
+  * a hardware watchdog (4 s) covers everything else.
+* **Glider checksums** on `$SD` are verified; bad lines are dropped and counted (health bit 64).
 
----
+## Configuring a profile
+
+Options live in `Kconfig` (all with defaults, run `west build -t menuconfig` to browse). A profile
+only lists what differs. The most important groups:
+
+**Glider link.** `SMART_GLIDER_SLOCUM` or `SMART_GLIDER_SEAGLIDER`, plus `SMART_GLIDER_BAUD` and
+`SMART_SENSOR_BAUD`.
+
+**Slocum indices.** These are positions in `extctl.ini`, counted from 0 across the `mp`, `os` and `is`
+sections in order. Use -1 for anything not used.
+
+| Option | Direction | Typical sensor |
+|---|---|---|
+| `SMART_SLOCUM_IDX_TIME` / `_DEPTH` / `_PHASE` | glider → board | `m_present_time`, `m_depth`, `cc_final_depth_state_mode` |
+| `SMART_SLOCUM_IDX_IN_MODE` / `_IN_DEPTH_MIN` / `_IN_DEPTH_MAX` | glider → board | `sci_generic_*` set by the pilot |
+| `SMART_SLOCUM_IDX_OUT_HEALTH` / `_TIME_VALID` / `_COUNT` / `_MAX_DEPTH` / `_LAST_DEPTH` | board → glider | `sci_generic_*` |
+
+**Sensor.** All behaviour comes from strings:
+
+| Option | UVP6 example |
+|---|---|
+| `SMART_SENSOR_READY_TOKEN` | `HW_CONF` (printed at power-up; proves the sensor booted) |
+| `SMART_SENSOR_START_CMD` | `$start:ACQ_CSCS_002H,%Y%m%d,%H%M%S;%n` |
+| `SMART_SENSOR_START_CMD_NOTIME` | `$start:ACQ_CSCS_002H;%n` |
+| `SMART_SENSOR_STOP_CMD` | `$stop;%n` |
+| `SMART_SENSOR_START_ACK` / `_STOP_ACK` | `$startack;` / `$stopack;` |
+| `SMART_SENSOR_DATA_PREFIX` / `_DATA_DEPTH_FIELD` | `LPM_DATA,` / `1` |
+
+Command template codes, modelled on logdev:
+
+| Code | Meaning |
+|---|---|
+| `%Y %m %d %H %M %S` | glider UTC date and time |
+| `%e` | epoch seconds |
+| `%D` | depth (m, 2 decimals) |
+| `%c` | cast (1 dive, 2 climb) |
+| `%s` | segment number |
+| `%r` / `%n` | CR / LF |
+| `%%` | a literal `%` |
+
+**Policy.** `SMART_POLICY_PHASE_*`, `SMART_POLICY_DEPTH_MIN_M` / `_MAX_M` / `_HYST_M`,
+`SMART_POLICY_TIME_WAIT_MS`, `SMART_POLICY_REQUIRE_TIME`, `SMART_POLICY_RESTART_ON_PHASE_CHANGE`,
+`SMART_POLICY_RESTART_HOLDOFF_MS`.
+
+**Power.** `SMART_SENSOR_POWER_CONTROL` switches the sensor through the relay on GP16 (JP1 on A-C).
+
+### Health bit field
+
+Reported on Slocum through `SMART_SLOCUM_IDX_OUT_HEALTH`, and on Seaglider by `INFO` and in each
+`#SEG` line. Bits 0-1 have the same meaning as the legacy `SW,0` status.
+
+| Bit | Value | Meaning |
+|---|---|---|
+| 0 | 1 | valid glider traffic received |
+| 1 | 2 | sensor power-up banner seen |
+| 2 | 4 | sampling |
+| 3 | 8 | glider time known |
+| 4 | 16 | last start got no ack |
+| 5 | 32 | last stop got no ack |
+| 6 | 64 | glider messages with bad checksum or unknown commands |
+| 7 | 128 | UART overruns or bytes dropped |
+
+## Adding a new integration
+
+1. Copy the closest profile folder, e.g. `cp -r profiles/uvp6_slocum profiles/mysensor_slocum`.
+2. Set the sensor strings and the policy in `smart.conf`. On Slocum, write `extctl.ini` and set the
+   indices to match it. On Seaglider, write the `.cnf` so its keywords match the
+   `SMART_LOGDEV_CMD_*` options.
+3. Build the tests with `-DSMART_PROFILE=mysensor_slocum`. Add a scenario test if the behaviour
+   differs from the shipped ones (see `tests/unit/src/test_scenario_*.c`).
+4. Bench test with `tools/glider_sim.py`, then a deck/sim dive.
+
+Sensor-specific processing goes in a plug-in under `src/proc/` (see `uvp6_lpm.c`). It gets each data
+record and the start and end of each segment, and can write to the store. Register it in
+`src/proc/proc.c` and `smart.cmake`.
+
+## Source map
+
+| Path | Content |
+|---|---|
+| `src/main.c` | event loop: UART wait, feed, watchdog |
+| `src/core/app.c` | routes bytes into adapters and the controller (shared with the tests) |
+| `src/core/controller.c` | state machine and sampling policy |
+| `src/glider/slocum_bsd.c` | Slocum Backseat Driver adapter |
+| `src/glider/seaglider_logdev.c` | Seaglider logdev adapter |
+| `src/sensor/sensor.c` | generic configurable sensor |
+| `src/proc/` | segment statistics and processing plug-ins |
+| `src/core/store.c` | RAM store for data waiting to be downloaded |
+| `src/util/` | NMEA framing, time, templates, number formatting |
+| `src/hw/` | UART ports, relay, watchdog |
+| `tests/unit/` | ztest unit and end-to-end scenario tests (native_sim) |
+
+## Changes in behaviour from the legacy UVP6 firmware
+
+* `$SW` values are sent as decimals: max depth goes out as `25.25` rather than `2525`. The glider
+  parses `$SW` values as floats.
+* The health value is sent after `$HI`. The legacy firmware sent it 2 s after power-up, before the
+  proglet was listening.
+* Leg statistics go out in one `$SW` message when the leg ends. The legacy firmware sent a separate
+  `SW,1:1` at the mode change.
+* The UVP6 waits up to 5 s for the first `$SD` time before starting without a timestamp.
+
+## Known limitations / next steps
+
+* **The store is in RAM.** On Seaglider the `.cnf` sets `post-stop=on` so the board stays powered
+  until the download. Persisting to flash (or to the OpenLog) is the next robustness step.
+* **Configuration is compile-time.** A runtime layer is planned: settings changed over the glider
+  port or from shore, saved in flash.
+* **UART1 is shared with the OpenLog.** The sensor and the OpenLog share UART1 through JP2/JP3.
+  Logging raw sensor data while talking to the sensor needs a PIO UART.
+* **Not yet validated against real hardware or a real glider.** It has only run in the host tests.

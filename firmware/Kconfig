@@ -1,0 +1,333 @@
+# SMaRT configuration options.
+#
+# Every option has a safe default. A profile (profiles/<name>/smart.conf)
+# only lists the options that differ for that glider + sensor integration.
+#
+# Kconfig has no floating point type, so depths are whole metres.
+# Command strings use logdev-style escapes (%r = CR, %n = LF); see
+# docs/CONFIGURATION.md for the full list of substitutions.
+
+mainmenu "SMaRT glider sensor interface"
+
+menu "SMaRT"
+
+config SMART_LINE_MAX
+	int "Maximum line length on either serial port"
+	default 512
+	range 64 2048
+
+choice SMART_GLIDER
+	prompt "Glider type"
+	default SMART_GLIDER_SLOCUM
+
+config SMART_GLIDER_SLOCUM
+	bool "Slocum G3 (Backseat Driver / extctl proglet)"
+
+config SMART_GLIDER_SEAGLIDER
+	bool "Seaglider (logdev logger device)"
+
+endchoice
+
+config SMART_GLIDER_BAUD
+	int "Glider port baud rate"
+	default 115200
+	help
+	  Must match the 'baud' section of extctl.ini (Slocum) or the
+	  'baud=' line of the .cnf file (Seaglider).
+
+config SMART_SENSOR_BAUD
+	int "Sensor port baud rate"
+	default 115200
+
+menu "Slocum Backseat Driver"
+	depends on SMART_GLIDER_SLOCUM
+
+comment "Indices are the 0-based position of the sensor in extctl.ini (mp + os + is sections, in order). -1 = not used."
+
+config SMART_SLOCUM_IDX_TIME
+	int "SD index of m_present_time"
+	default -1
+	range -1 63
+
+config SMART_SLOCUM_IDX_DEPTH
+	int "SD index of m_depth"
+	default -1
+	range -1 63
+
+config SMART_SLOCUM_IDX_PHASE
+	int "SD index of the depth state (1 dive, 2 climb, 3 hover, 0 surface)"
+	default -1
+	range -1 63
+	help
+	  Typically cc_final_depth_state_mode or m_depth_state.
+
+config SMART_SLOCUM_IDX_IN_MODE
+	int "SD index of a pilot-settable sampling mode (sci_generic_*)"
+	default -1
+	range -1 63
+	help
+	  Lets the pilot change when the sensor runs from shore.
+	  Value: 0 off, 1 dive, 2 climb, 3 hover, 4 dive+climb, 5 always.
+	  Overrides the SMART_POLICY_PHASE_* options while received.
+
+config SMART_SLOCUM_IDX_IN_DEPTH_MIN
+	int "SD index of a pilot-settable minimum sampling depth"
+	default -1
+	range -1 63
+
+config SMART_SLOCUM_IDX_IN_DEPTH_MAX
+	int "SD index of a pilot-settable maximum sampling depth"
+	default -1
+	range -1 63
+
+config SMART_SLOCUM_IDX_OUT_HEALTH
+	int "SW index for the health bit field"
+	default -1
+	range -1 63
+
+config SMART_SLOCUM_IDX_OUT_TIME_VALID
+	int "SW index for 'sensor started with glider time' (1 yes, -1 no)"
+	default -1
+	range -1 63
+
+config SMART_SLOCUM_IDX_OUT_COUNT
+	int "SW index for the number of data records in the last segment"
+	default -1
+	range -1 63
+
+config SMART_SLOCUM_IDX_OUT_MAX_DEPTH
+	int "SW index for the maximum record depth in the last segment"
+	default -1
+	range -1 63
+
+config SMART_SLOCUM_IDX_OUT_LAST_DEPTH
+	int "SW index for the last record depth in the last segment"
+	default -1
+	range -1 63
+
+config SMART_SLOCUM_REQUIRE_CHECKSUM
+	bool "Drop glider messages with a missing or wrong checksum"
+	default y
+
+config SMART_SLOCUM_SD_ACTIVATES
+	bool "Treat SD messages while inactive as an active session"
+	default y
+	help
+	  Recovers the session if the board rebooted after the glider
+	  already sent HI.
+
+endmenu
+
+menu "Seaglider logdev"
+	depends on SMART_GLIDER_SEAGLIDER
+
+config SMART_LOGDEV_PROMPT
+	string "Prompt sent to the glider (must match prompt= in the .cnf)"
+	default "UV>"
+
+config SMART_LOGDEV_CMD_START
+	string "Start command keyword"
+	default "START"
+
+config SMART_LOGDEV_CMD_STOP
+	string "Stop command keyword"
+	default "STOP"
+
+config SMART_LOGDEV_CMD_DEPTH
+	string "Depth status keyword (sent by status=)"
+	default "DEPTH:"
+
+config SMART_LOGDEV_CMD_DOWNLOAD
+	string "Download command keyword"
+	default "SEND_TXT_FILE"
+
+config SMART_LOGDEV_CMD_INFO
+	string "Info command keyword"
+	default "INFO"
+
+endmenu
+
+menu "Sensor"
+
+config SMART_SENSOR_NAME
+	string "Sensor name (for logs)"
+	default "sensor"
+
+config SMART_SENSOR_READY_TOKEN
+	string "Text the sensor prints when it has powered up"
+	default ""
+	help
+	  Empty: the sensor is assumed ready after SMART_SENSOR_BOOT_TIMEOUT_MS.
+
+config SMART_SENSOR_BOOT_TIMEOUT_MS
+	int "How long to wait for the ready token after power-up"
+	default 5000
+
+config SMART_SENSOR_RESTART_ON_READY
+	bool "Restart acquisition if the sensor reboots while sampling"
+	default y
+
+config SMART_SENSOR_START_CMD
+	string "Start command template (used when the glider time is known)"
+	default ""
+
+config SMART_SENSOR_START_CMD_NOTIME
+	string "Start command template without time"
+	default ""
+	help
+	  Empty: wait until the glider has provided the time before starting.
+
+config SMART_SENSOR_STOP_CMD
+	string "Stop command template"
+	default ""
+
+config SMART_SENSOR_START_ACK
+	string "Text the sensor answers to a start command (empty = no ack)"
+	default ""
+
+config SMART_SENSOR_STOP_ACK
+	string "Text the sensor answers to a stop command (empty = no ack)"
+	default ""
+
+config SMART_SENSOR_ACK_TIMEOUT_MS
+	int "Time to wait for each ack"
+	default 1000
+
+config SMART_SENSOR_START_RETRIES
+	int "Start command retries when no ack is received"
+	default 2
+
+config SMART_SENSOR_STOP_RETRIES
+	int "Stop command retries when no ack is received"
+	default 3
+
+config SMART_SENSOR_DATA_PREFIX
+	string "Prefix of a sensor data record line"
+	default ""
+
+config SMART_SENSOR_DATA_DEPTH_FIELD
+	int "Comma-separated field holding depth in a data record (0 = prefix field, -1 = none)"
+	default -1
+
+config SMART_SENSOR_POWER_CONTROL
+	bool "Switch sensor power with the on-board relay (GP16, JP1 on A-C)"
+	default n
+
+config SMART_SENSOR_POWER_OFF_WHEN_IDLE
+	bool "Power the sensor off while the glider session is inactive"
+	depends on SMART_SENSOR_POWER_CONTROL
+	default n
+
+endmenu
+
+menu "Sampling policy"
+
+config SMART_POLICY_PHASE_DIVE
+	bool "Sample while diving"
+	default y
+
+config SMART_POLICY_PHASE_CLIMB
+	bool "Sample while climbing"
+	default y
+
+config SMART_POLICY_PHASE_HOVER
+	bool "Sample while hovering"
+	default y
+
+config SMART_POLICY_PHASE_SURFACE
+	bool "Sample at the surface"
+	default n
+
+config SMART_POLICY_PHASE_UNKNOWN
+	bool "Sample before the glider has reported a phase"
+	default y
+
+config SMART_POLICY_DEPTH_MIN_M
+	int "Only sample deeper than this (m, 0 = no limit)"
+	default 0
+
+config SMART_POLICY_DEPTH_MAX_M
+	int "Only sample shallower than this (m, 0 = no limit)"
+	default 0
+
+config SMART_POLICY_DEPTH_HYST_M
+	int "Depth hysteresis around the limits (m)"
+	default 1
+
+config SMART_POLICY_REQUIRE_TIME
+	bool "Never start before the glider time is known"
+	default n
+
+config SMART_POLICY_TIME_WAIT_MS
+	int "After the glider session opens, wait this long for the time before starting without it"
+	default 5000
+	help
+	  The first SD message (with m_present_time) usually follows HI
+	  within a few seconds; starting right away would lose the
+	  timestamp on the sensor files.
+
+config SMART_POLICY_RESTART_ON_PHASE_CHANGE
+	bool "Stop and restart the sensor when the phase changes (one segment per phase)"
+	default n
+
+config SMART_POLICY_RESTART_HOLDOFF_MS
+	int "Pause between a stop and the next start"
+	default 2000
+
+config SMART_POLICY_FAIL_BACKOFF_MS
+	int "Pause before retrying after the sensor failed to start"
+	default 10000
+
+endmenu
+
+menu "Passthrough"
+
+config SMART_PASSTHROUGH
+	bool "Allow a transparent glider <-> sensor bridge for bench work"
+	default y
+
+config SMART_PASSTHROUGH_ENTER
+	string "Glider line that enters passthrough"
+	depends on SMART_PASSTHROUGH
+	default "$MIRROR"
+
+config SMART_PASSTHROUGH_EXIT
+	string "Glider line that leaves passthrough"
+	depends on SMART_PASSTHROUGH
+	default "$QUIT"
+
+config SMART_PASSTHROUGH_TIMEOUT_S
+	int "Leave passthrough after this long without traffic"
+	depends on SMART_PASSTHROUGH
+	default 600
+
+endmenu
+
+menu "Data processing"
+
+config SMART_STORE_SIZE
+	int "RAM buffer for processed data awaiting download (bytes)"
+	default 16384
+
+config SMART_PROC_UVP6_LPM
+	bool "UVP6 LPM summary (size-class sums) written to the store"
+	default n
+
+config SMART_PROC_UVP6_LPM_DECIMATE
+	int "Keep one of every N LPM records"
+	depends on SMART_PROC_UVP6_LPM
+	default 10
+
+endmenu
+
+config SMART_WATCHDOG_TIMEOUT_MS
+	int "Hardware watchdog timeout (0 = disabled)"
+	default 4000
+
+endmenu
+
+module = SMART
+module-str = smart
+source "subsys/logging/Kconfig.template.log_config"
+
+source "Kconfig.zephyr"

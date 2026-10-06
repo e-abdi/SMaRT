@@ -1,0 +1,16 @@
+name=UVP6
+prefix=uv
+cmdprefix=$UV_
+baud=115200
+voltage=10
+current=0.3
+datatype=u
+prompt=UV>
+powerup-timeout=8000
+timeout=6000
+wakeup=%r%p
+start=%r%pSTART %{%Y%m%d,%H%M%S},%c%r%p
+stop=%r%pSTOP%r%p
+status=DEPTH:%D%r
+download=%r%pSEND_TXT_FILE %c%r
+post-stop=on
