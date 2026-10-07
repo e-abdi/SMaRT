@@ -257,4 +257,4 @@ record and the start and end of each segment, and can write to the store. Regist
   port or from shore, saved in flash.
 * **UART1 is shared with the OpenLog.** The sensor and the OpenLog share UART1 through JP2/JP3.
   Logging raw sensor data while talking to the sensor needs a PIO UART.
-* **Not yet validated against real hardware or a real glider.** It has only run in the host tests.
+
