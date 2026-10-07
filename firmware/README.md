@@ -39,6 +39,67 @@ python3 firmware/tools/glider_sim.py slocum /dev/ttyUSB0 --baud 38400 --depth 30
 python3 firmware/tools/glider_sim.py seaglider /dev/ttyUSB0 --baud 115200 --depth 30
 ```
 
+### Verifying a board as you assemble it
+
+`firmware/selftest` is a minimal standalone image (no dependency on the rest of
+`src/`) that answers PING/ID over each UART and relays messages between them,
+so each part can be checked as it is populated, before the real glider/sensor
+profile is ever involved:
+
+```bash
+west build -p -b rpi_pico firmware/selftest -d build-selftest
+west flash -d build-selftest   # or drag-and-drop build-selftest/zephyr/zephyr.uf2
+
+python3 firmware/tools/assembly_check.py          # walks through all stages
+python3 firmware/tools/assembly_check.py --list
+python3 firmware/tools/assembly_check.py --from-stage 3
+```
+
+It checks, in order:
+
+1. the bare Pico at logic level on J1 (`TestPins_Glider`)
+2. the SWD debug probe on J8 (reset + an RTT boot-banner read-back, the same
+   debug path used by the real firmware)
+3. the regulator and glider-side MAX3232 (U1/U2) on J5
+4. the sensor-side MAX3232 (U4) on J13, with a full cross-port passthrough test
+5. the sensor power relay (U3) - skip if the build does not use the relay
+6. a manual checklist for OpenLog and the Qwiic connectors
+
+The SWD stage needs the SEGGER J-Link tools (`JLinkExe`, `JLinkRTTLogger`) on
+`PATH`.
+
+#### J8 ("Programmer") pinout
+
+Pulled from the routed PCB (`hardware/SMaRT/SMaRT.kicad_pcb`), not just the
+schematic. J8 is an 8-pin Molex 2068320802 (2 rows of 4, ~3 mm pitch); only
+pins 1-5 carry the debug interface:
+
+| J8 pin | Signal |
+|---|---|
+| 1 | GND |
+| 2 | SWDIO |
+| 3 | SWCLK |
+| 4 | RESET (RP2040 `RUN`, active-low) |
+| 5 | 3V3 (VTref - target voltage sense, not a supply) |
+| 6-8 | not part of the debug interface (routed to J9) |
+
+No SWO/TDO is wired, which is fine: Zephyr RTT and a plain SWD reset only
+need SWDIO/SWCLK/RESET/GND/VTref. Check the silkscreen for the pin 1 marker
+before wiring - it was not recoverable from the netlist alone.
+
+Connect by signal name on whatever probe/adapter you have. For a J-Link EDU
+Mini (direct 9-pin 1.27 mm Cortex-M connector, no adapter needed):
+
+| J-Link EDU Mini pin | Signal | → J8 pin |
+|---|---|---|
+| 1 | VTref | 5 (3V3) |
+| 2 | SWDIO | 2 |
+| 3 | GND | 1 |
+| 4 | SWCLK | 3 |
+| 9 | RESET | 4 |
+
+(EDU Mini pins 5/spare GND, 6/SWO, 7/key, 8/NC are unused here.)
+
 ## Profiles shipped
 
 | Profile | Glider | Sensor | Behaviour |
